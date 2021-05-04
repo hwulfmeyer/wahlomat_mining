@@ -1094,6 +1094,8 @@ import pandas as pd
 
 #hardcoded list extracted with regex above
 parteien = ['GRÜNE', 'CDU', 'AfD', 'SPD', 'FDP', 'DIE LINKE', 'ÖDP', 'PIRATEN', 'Die PARTEI', 'FREIE WÄHLER', 'MENSCHLICHE WELT', 'Bündnis C', 'DKP', 'dieBasis', 'DiB', 'Eine für Alle - Partei', 'KlimalisteBW', 'Die Humanisten', 'Gesundheitsforschung', 'W2020', 'Volt']
+
+
 df = pd.DataFrame(antworten, columns = parteien, dtype=float)
 
 #change index to begin from 1

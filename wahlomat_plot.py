@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.decomposition import PCA
 import plotly.express as px
-import wahlomat_data
+import wahlomat_bw2021 as wahlomat_data
 from scipy.cluster.hierarchy import linkage
 
 sns.set(font_scale=0.5)
@@ -13,7 +13,14 @@ sns.set_theme(color_codes=True)
 
 
 metrics = ['euclidean', 'cityblock', 'seuclidean', 'sqeuclidean', 'cosine', 'correlation', 'hamming', 'jaccard', 'chebyshev', 'canberra', 'braycurtis', 'dice', 'kulsinski', 'rogerstanimoto', 'russellrao', 'sokalmichener', 'sokalsneath']
+metrics = ['braycurtis', 'canberra', 'cityblock', 'correlation', 'cosine', 'euclidean', 'hamming', 'jaccard', 'seuclidean', 'sqeuclidean']
+metrics = ['cityblock']
+
 methods = ['single', 'complete', 'average', 'weighted', 'centroid', 'median']
+methods = ['single', 'complete', 'average', 'weighted']
+"""
+single mit cityblock sieht am interessantesten aus
+"""
 
 for method in methods:
     for metric in metrics:
@@ -39,7 +46,7 @@ for n_components in range(1,6,1):
     pcacomponents = pd.DataFrame(pca.components_, columns=wahlomat_data.df_all_transposed.columns,index = ["PCA-" + str(x+1) for x in range(n_components)])
 
     sns.set_theme(color_codes=True)
-    if n_components > 8:
+    if n_components > 1:
         row_linkage, col_linkage = (linkage(x, metric="euclidean", optimal_ordering=True) for x in (pcacomponents.values, pcacomponents.values.T))
         g = sns.clustermap(pcacomponents,  row_cluster=False, figsize=(13, 3 if n_components == 1 else (n_components+1)), dendrogram_ratio=(0.1, 0.75), row_linkage=row_linkage, col_linkage=col_linkage)
     else:
@@ -53,10 +60,9 @@ for n_components in range(1,6,1):
 #only plot variance for the largest PCA
 exp_var_pca = pca.explained_variance_ratio_
 
-# Cumulative sum of eigenvalues; This will be used to create step plot
-# for visualizing the variance explained by each principal component.
+# Cumulative sum of eigenvalues, to create step plot
+# for visualizing the variance explained by each principal component
 cum_sum_eigenvalues = np.cumsum(exp_var_pca)
-
 
 # Create the visualization plot
 plt.bar(range(0,len(exp_var_pca)), exp_var_pca, alpha=0.5, align='center', label='Individual explained variance')
