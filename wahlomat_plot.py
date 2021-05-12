@@ -1,23 +1,22 @@
 import pandas as pd
-import re
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.decomposition import PCA
 import plotly.express as px
-import wahlomat_bw2021 as wahlomat_data
-from scipy.cluster.hierarchy import linkage
+import wahlomat_lsa2021 as wahlomat_data
+from scipy.cluster.hierarchy import _plot_dendrogram, linkage, optimal_leaf_ordering
 
 sns.set(font_scale=0.5)
 sns.set_theme(color_codes=True)
 
 
 metrics = ['euclidean', 'cityblock', 'seuclidean', 'sqeuclidean', 'cosine', 'correlation', 'hamming', 'jaccard', 'chebyshev', 'canberra', 'braycurtis', 'dice', 'kulsinski', 'rogerstanimoto', 'russellrao', 'sokalmichener', 'sokalsneath']
-metrics = ['braycurtis', 'canberra', 'cityblock', 'correlation', 'cosine', 'euclidean', 'hamming', 'jaccard', 'seuclidean', 'sqeuclidean']
-metrics = ['cityblock']
+metrics = ['braycurtis', 'canberra', 'cityblock', 'euclidean', 'hamming', 'jaccard']
+metrics = ['euclidean']
 
 methods = ['single', 'complete', 'average', 'weighted', 'centroid', 'median']
-methods = ['single', 'complete', 'average', 'weighted']
+methods = ['average']
 """
 single mit cityblock sieht am interessantesten aus
 """
@@ -27,32 +26,34 @@ for method in methods:
         if method in ('centroid', 'median'):
             metric = 'euclidean'
         print(method + " - " + metric)
-        row_linkage, col_linkage = (linkage(x, metric=metric, method=method, optimal_ordering=True) for x in (wahlomat_data.df_all_transposed.values, wahlomat_data.df_all_transposed.values.T))
-        g = sns.clustermap(wahlomat_data.df_all_transposed, figsize=(13,6), cmap="vlag_r", row_linkage=row_linkage, col_linkage=col_linkage)
-
-        #g = sns.clustermap(wahlomat_data.df_all_transposed, figsize=(13,6), cmap="vlag_r", metric=metric, method=method)
+        row_linkage, col_linkage = (linkage(x, metric=metric, method=method, optimal_ordering=True) for x in (wahlomat_data.df.values, wahlomat_data.df.values.T))
+        g = sns.clustermap(wahlomat_data.df, cmap=sns.diverging_palette(22, 145, as_cmap=True), row_linkage=row_linkage, col_linkage=col_linkage, yticklabels=True, linewidths=0.1, dendrogram_ratio=(0.15, 0.15))
+        g.cax.set_visible(False)
+        #g = sns.clustermap(wahlomat_data.df_t, figsize=(13,6), cmap="vlag_r", metric=metric, method=method)
         g.ax_heatmap.set_xticklabels(g.ax_heatmap.get_xmajorticklabels(), fontsize = 8)
         g.ax_heatmap.set_yticklabels(g.ax_heatmap.get_ymajorticklabels(), fontsize = 8)
         plt.savefig("plots/" + "clustermap_" + method + "_" + metric + ".png", dpi=600)
         #plt.show()
         plt.clf()
 
-
 pca = PCA()
-for n_components in range(1,6,1):
+for n_components in range(1,7,1):
     pca = PCA(n_components=n_components)
-    model = pca.fit_transform(wahlomat_data.df_all_transposed)
+    pca.fit_transform(wahlomat_data.df_t)
 
-    pcacomponents = pd.DataFrame(pca.components_, columns=wahlomat_data.df_all_transposed.columns,index = ["PCA-" + str(x+1) for x in range(n_components)])
+    pcacomponents = pd.DataFrame(pca.components_, columns=wahlomat_data.df_t.columns, index = ["PCA-" + str(x+1) for x in range(n_components)])
+    pcacomponents = pcacomponents.transpose()
 
+    pcacomponents = pcacomponents.sort_values("PCA-1")
     sns.set_theme(color_codes=True)
     if n_components > 1:
         row_linkage, col_linkage = (linkage(x, metric="euclidean", optimal_ordering=True) for x in (pcacomponents.values, pcacomponents.values.T))
-        g = sns.clustermap(pcacomponents,  row_cluster=False, figsize=(13, 3 if n_components == 1 else (n_components+1)), dendrogram_ratio=(0.1, 0.75), row_linkage=row_linkage, col_linkage=col_linkage)
+        g = sns.clustermap(pcacomponents,  row_cluster=False, col_cluster=False, dendrogram_ratio=(0.4, 0.1), row_linkage=row_linkage, col_linkage=col_linkage, cmap="YlGnBu")
     else:
-        g = sns.clustermap(pcacomponents, row_cluster=False, figsize=(13, 3 if n_components == 1 else (n_components+1)), dendrogram_ratio=(0.1, 0.75), metric="euclidean")
+        g = sns.clustermap(pcacomponents, row_cluster=False, col_cluster=False, dendrogram_ratio=(0.01, 0.01), metric="cityblock", cmap="YlGnBu")
     g.ax_heatmap.set_xticklabels(g.ax_heatmap.get_xmajorticklabels(), fontsize = 8)
     g.ax_heatmap.set_yticklabels(g.ax_heatmap.get_ymajorticklabels(), fontsize = 8)
+    g.cax.set_visible(False)
     plt.savefig("plots/" + "PCA-" + str(n_components) + "_heatmap.png", dpi=600)
     #plt.show()
     plt.clf()
@@ -72,5 +73,5 @@ plt.xlabel('Principal component index')
 plt.legend(loc='best')
 plt.tight_layout()
 plt.savefig("plots/" + "PCA-" + str(n_components) + "_explained_variance.png", dpi=600)
-#plt.show()
+plt.show()
 plt.clf()

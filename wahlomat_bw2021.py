@@ -1088,6 +1088,7 @@ for x in antworten:
 
 import numpy as np
 import pandas as pd
+import re
 
 #regex if analyzing the js-array
 #parteien = re.findall(r"WOMT_aParteien.{1,4}\[0\]\[1\]='(.*)'", parteienstring)
@@ -1106,4 +1107,4 @@ df.drop('Gesundheitsforschung', inplace=True, axis=1)
 parteien.remove('Gesundheitsforschung')
 
 #tranpose so that parties are on y-axis
-df_all_transposed = df.transpose()
+df_t = df.transpose()
